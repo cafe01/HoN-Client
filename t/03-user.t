@@ -29,8 +29,8 @@ is($user->nickname, $credential->{nickname}, 'right nickname');
 like($user->account_id, qr/^\d+$/, 'has some account_id');
 
 # coins
-ok($user->gold_coins >= 0, 'has numeric gold coins');
-ok($user->silver_coins >= 0, 'has numeric silver coins');
+like($user->gold_coins, qr/^\d+$/,  'gold_coins() return a number');
+like($user->silver_coins, qr/^\d+$/, 'silver_coins() return a number');
 
 
 

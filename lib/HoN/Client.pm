@@ -42,7 +42,6 @@ Pure OO module.
 has 'user'    => ( is => 'rw', isa => 'HoN::Client::User' );
 
 has '_auth_data' => ( is => 'rw', isa => 'HashRef' );
-
 has '_cookie' => ( is => 'rw', isa => 'Str' );
 has '_chat_server' => ( is => 'rw', isa => 'Str' );
 
