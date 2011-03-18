@@ -7,7 +7,9 @@ use namespace::autoclean;
 use Digest::MD5 qw(md5_hex);
 use LWP::UserAgent;
 use PHP::Serialization qw(unserialize);
+
 use HoN::Client::User;
+use HoN::Client::Chat;
 
 with 'HoN::Client::Role::Logger';
 
@@ -40,10 +42,25 @@ Pure OO module.
 =cut
 
 has 'user'    => ( is => 'rw', isa => 'HoN::Client::User' );
+has 'chat'    => ( is => 'rw', isa => 'HoN::Client::Chat', lazy_build => 1 );
+
+
+has 'is_connected'    => ( is => 'rw', isa => 'Bool', default => 0 );
 
 has '_auth_data' => ( is => 'rw', isa => 'HashRef' );
 has '_cookie' => ( is => 'rw', isa => 'Str' );
 has '_chat_server' => ( is => 'rw', isa => 'Str' );
+
+
+sub _build_chat {
+    my $self = shift;
+    
+    # die unless connected
+    die "You can't chat() before connect()" unless $self->is_connected;
+    
+    return HoN::Client::Chat->new(client => $self);
+}
+
 
 =head1 METHODS
 
@@ -88,12 +105,15 @@ sub connect {
         return 0;
     }
     
+    # connected!
+    $self->is_connected(1);
+    
     # setup attributes
     $self->_cookie($auth_data->{cookie});
     $self->_chat_server($auth_data->{chat_url});
     
     # all good, create new User
-    return HoN::Client::User->new( config => $auth_data );
+    return $self->user(HoN::Client::User->new( config => $auth_data ));
 }
 
 

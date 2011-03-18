@@ -28,7 +28,9 @@ is($c->connect('foo', 'bar'), 0, 'bad username/password');
 
 # right username/password
 my $user = $c->connect($credential->{username}, $credential->{password});
-isa_ok($user, 'HoN::Client::User', 'connect() retuned a user');
+isa_ok($user, 'HoN::Client::User', ''thing returned by  connect()');
+isa_ok($c->user, 'HoN::Client::User', 'thing returned by $client->user()');
+
 
 # cookie
 like($c->_cookie, qr/^\w{32}$/, 'has md5-like cookie');

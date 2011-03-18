@@ -2,8 +2,11 @@ package HoN::Client::Chat;
 
 use Moose;
 use namespace::autoclean;
+use HoN::Client::Chat::PacketFactory;
 use Data::Hexdumper qw(hexdump);
-use Convert::Binary::C;
+use AnyEvent;   
+use AnyEvent::Handle;
+
 
 with 'HoN::Client::Role::Logger';
 
@@ -28,9 +31,9 @@ Version 0.01
 has 'client'      => ( is => 'ro', isa => 'HoN::Client', required => 1 );
 has 'server_port' => ( is => 'ro', isa => 'Int',         default  => 11031 );
 
-#has 'packet_factory' => ( is => 'ro', isa => 'HoN::Client::Chat::PacketFactory' );
+has 'packet_factory' => ( is => 'ro', isa => 'HoN::Client::Chat::PacketFactory', default => sub {HoN::Client::Chat::PacketFactory->new }, handles =>[ 'new_packet'] );
 
-
+has 'handler'      => ( is => 'rw', isa => 'AnyEvent::Handle' );
 
 
 =head1 METHODS
@@ -39,68 +42,117 @@ has 'server_port' => ( is => 'ro', isa => 'Int',         default  => 11031 );
 
 =cut
 
-sub {
+sub connect {
     my ($self) = @_;
-
-    my $c = Convert::Binary::C->new( ByteOrder => 'BigEndian' );
-
-    $c->parse_file('structs.c');
-
-    my $data = {
-        id         => 0,
-        unknown    => 0x0c,
-        account_id => 1462544,
-        cookie     => [],
-    };
-
-    my $binary = $c->pack( 'Packet', $data );
-
-    print hexdump( data => $binary );
-
-    return;
-
-    # store results here
-    my ( $response, $header, $body );
+    
+    # 
+    my $cv = AnyEvent->condvar;
 
     # start connection
-    my $handle; $handle = new AnyEvent::Handle
-      connect  => [ $self->client->_chat_server => $self->server_port ],
-      on_error => sub {
-        $handle->destroy;    # explicitly destroy handle
-      },
-      on_eof => sub {
-        #$cb->($response, $header, $body);
-        $handle->destroy;    # explicitly destroy handle
-      };
-
-    # create Login packet
-#    my $login_pkt = $self->new_packet('Login', {
-#        id         => 0,
-#        unknown    => 0x0c,
-#        account_id => 1462544,
-#        cookie     => to_char_dec_array('f840a975237b4ae10862d0bbb11f2d90'),
-#    });
-
-    #  $handle->push_write($login_pkt);
+    my $h; $h = new AnyEvent::Handle 
+        connect  => [ $self->client->_chat_server => $self->server_port ],
+        on_connect => sub {
+            $self->_on_connect(@_);
+        },
+        on_error => sub {
+            $self->log->debug('Called: on_error');
+            $h->destroy;    # explicitly destroy handle
+            $cv->send;
+        },
+        on_eof => sub {
+            $self->log->debug('Called: on_eof');
+            $h->destroy;    # explicitly destroy handle
+            $cv->send;
+        };
+        
+    # save handler
+    $self->handler($h);
+        
+    # hold until connection is completed (or failed)
+    $cv->recv;
     
-    #  # now fetch response status line
-    #  $handle->push_read (line => sub {
-    #     my ($handle, $line) = @_;
-    #     $response = $line;
-    #  });
-    #
-    #  # then the headers
-    #  $handle->push_read (line => "\015\012\015\012", sub {
-    #     my ($handle, $line) = @_;
-    #     $header = $line;
-    #  });
-    #
-    #  # and finally handle any remaining data as body
-    #  $handle->on_read (sub {
-    #     $body .= $_[0]->rbuf;
-    #     $_[0]->rbuf = "";
-    #  });
+}
 
-  }
+sub _on_connect {
+    my ($self) = @_;
+    
+    # start hanlding packets:
+    $self->handler->on_read(sub {
+        my $h = shift;
+
+        # some data is here, now queue the length-header-read (4 octets)
+        $h->unshift_read (chunk => 2, sub {
+            
+            # header arrived, decode
+            my $len = unpack "S>", $_[1];
+                
+            printf STDERR "\n<==\nGot packet: %d bytes: ",$len;
+            
+            # read ID
+            shift->unshift_read (chunk => 2, sub {
+                
+                # subtract chunk from $len
+                $len -= 2;
+                
+                # id arrived, decode
+                my $id = unpack "S>", $_[1];
+                printf STDERR "Packet ID: 0x%04x\n",$id;
+                
+                # now read the payload
+                shift->unshift_read (chunk => $len, sub {
+                    my $buf = $_[1];                
+    
+                    printf STDERR "Data (%d bytes - len / %d bytes - buffer):\n", $len, length $buf;
+                    print STDERR hexdump(data => $buf ) if $buf;
+                    
+                    # decode packet
+                    my $pkt = $self->decode_packet($id, $buf);
+                    
+                    # fire event
+                    $self->fire_event($pkt->{event_name}, $self, $pkt);                     
+                });
+            });
+        });
+   });
+   
+    # log in
+    $self->send_request('Login', {
+        id         => 0,
+        unknown    => 0x0c,
+        account_id => $self->client->user->account_id,
+        cookie     => $self->client->_cookie,
+    });
+}
+
+
+=head2 send_request
+
+Arguments: ($request_name, $packet_data)
+
+Build packet of type $request_name, using $packet_data and sends to the write queue.
+
+Reponses are handled at the main on_read callback. See _on_connect.
+
+=cut
+sub send_request {
+    my ($self, $req_name, $req_data) = @_;
+      
+    # build pkt
+    my $pkt = $self->new_packet($req_name, $req_data);    
+    
+    print STDERR "\n=>\nSending packet:\n";
+    print STDERR hexdump(data => $pkt );
+    
+    # send
+    $self->handler->push_write($pkt);
+}
+
+
+
+
+
+
+
+
 
   1;

@@ -6,8 +6,7 @@ AnyEvent
 PHP::Serialization
 Moose
 Data::Hexdumper
-Config::General
-
+MooseX::ClassAttribute 
 
 INSTALLATION
 
