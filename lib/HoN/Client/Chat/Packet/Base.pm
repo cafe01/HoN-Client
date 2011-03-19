@@ -71,6 +71,7 @@ typedef unsigned int u_32;
 typedef char String[];
 typedef u_32 account_id;
 typedef char cookie[32];
+typedef char ConcatString[];
 
 CCODE
 
@@ -78,6 +79,29 @@ CCODE
     $c->tag('cookie', Format => 'String');
     $c->tag('String', Format => 'String');
     $c->tag('account_id', ByteOrder => 'LittleEndian');
+    
+    my $extracted_strings = 0;
+    my $packed_buf = '';
+    $c->tag('ConcatString', Format => 'Binary', Hooks => { 
+        unpack => sub {
+            my $data = shift;
+                    
+            # unpack
+            my @fields = unpack('Z*' x ++$extracted_strings , $data);
+            my $field = pop @fields;
+            
+            return $field;
+        },
+        
+        pack => sub {
+            my $packed = pack('Z*', $_[0]);
+            #print STDERR "Packing ($_[0]):\n", hexdump(data=> $_[0]), "into:\n", hexdump(data=> $packed);
+            $packed_buf .= $packed;
+            
+            #print STDERR "Packing ($_[0]):\n", hexdump(data=> $_[0]), "into:\n", hexdump(data=> $packed), "Buf:\n",  hexdump(data=> $packed_buf);
+            $packed_buf;
+        }
+    });
 
     return $c;
 }
@@ -111,7 +135,7 @@ sub BUILD {
 
 sub _dump {
     my ($self, $data) = @_;
-    print STDERR hexdump(data => $data);
+    print STDERR hexdump(data => $data || $self->packed);
 }
 
 

@@ -61,7 +61,6 @@ around '_build_binary_c' => sub {
      
     $c->parse(<<'CCODE');
     
-typedef char ConcatString[];
     
 struct UserUpdate {
     account_id account_id;
@@ -76,19 +75,6 @@ struct UserUpdate {
 
 CCODE
 
-    my $extracted_strings = 0;
-    $c->tag('ConcatString', Format => 'Binary', Hooks => { unpack => sub {
-        my $data = shift;
-                
-        # unpack
-        my @fields = unpack('Z*' x ++$extracted_strings , $data);
-        my $field = pop @fields;
-        
-        return $field;
-    }});
-
-    
-    
     # return
     return $c;
 };
