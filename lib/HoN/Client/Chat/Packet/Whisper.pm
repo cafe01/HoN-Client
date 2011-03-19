@@ -56,6 +56,9 @@ sub _encode_packet {
     
     # populate attributes
     $self->$_($data->{$_}) for (qw/ user message /);   
+    
+    # evt name
+    $self->event_name('whisper_sent');
 }
 
 
@@ -71,7 +74,10 @@ sub _decode_packet {
     my $unpacked = $self->unpack($self->name,  pack('S>', $self->decode_id).$data);
     
     # populate attributes
-    $self->$_($unpacked->{$_}) for (qw/ user message /);    
+    $self->$_($unpacked->{$_}) for (qw/ user message /);       
+    
+    # evt name
+    $self->event_name('whisper_received');
 }
 
 

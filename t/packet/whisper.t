@@ -29,6 +29,7 @@ isa_ok($pkt_whisper, 'HoN::Client::Chat::Packet::Whisper', 'Whisper - thing retu
 is(unpack('H*', $pkt_whisper->packed),  lc '08005B724B725D4E6575726F626173686572004D414E44414E444F205748495350455200', 'Whisper - encode - packed');
 is($pkt_whisper->user, '[rKr]Neurobasher', 'Whisper - encode - user');
 is($pkt_whisper->message, 'MANDANDO WHISPER', 'Whisper - encode - message');
+is($pkt_whisper->event_name, 'whisper_sent', 'Whisper - encode - event_name');
 
 
 # Whisper - decode
@@ -43,6 +44,7 @@ isa_ok($pkt_whisper, 'HoN::Client::Chat::Packet::Whisper', 'Whisper - thing retu
 
 is($pkt_whisper->user, '[rKr]Neurobasher', 'Whisper - user');
 is($pkt_whisper->message, 'MANDANDO WHISPER', 'Whisper - message');
+is($pkt_whisper->event_name, 'whisper_received', 'Whisper - encode - event_name');
 
 
 
