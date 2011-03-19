@@ -7,8 +7,8 @@ use Data::Hexdumper qw(hexdump);
 use AnyEvent;   
 use AnyEvent::Handle;
 
-
 with 'HoN::Client::Role::Logger';
+with 'HoN::Client::Role::Observable';
 
 =head1 NAME
 
@@ -31,7 +31,12 @@ Version 0.01
 has 'client'      => ( is => 'ro', isa => 'HoN::Client', required => 1 );
 has 'server_port' => ( is => 'ro', isa => 'Int',         default  => 11031 );
 
-has 'packet_factory' => ( is => 'ro', isa => 'HoN::Client::Chat::PacketFactory', default => sub {HoN::Client::Chat::PacketFactory->new }, handles =>[ 'new_packet'] );
+has 'packet_factory' => (
+    is      => 'ro',
+    isa     => 'HoN::Client::Chat::PacketFactory',
+    default => sub { HoN::Client::Chat::PacketFactory->new },
+    handles => ['new_packet', 'decode_packet']
+);
 
 has 'handler'      => ( is => 'rw', isa => 'AnyEvent::Handle' );
 
@@ -109,7 +114,7 @@ sub _on_connect {
                     my $pkt = $self->decode_packet($id, $buf);
                     
                     # fire event
-                    $self->fire_event($pkt->{event_name}, $self, $pkt);                     
+                    $self->fire_event($pkt->event_name, $self, $pkt);                     
                 });
             });
         });
@@ -117,8 +122,6 @@ sub _on_connect {
    
     # log in
     $self->send_request('Login', {
-        id         => 0,
-        unknown    => 0x0c,
         account_id => $self->client->user->account_id,
         cookie     => $self->client->_cookie,
     });
@@ -137,14 +140,14 @@ Reponses are handled at the main on_read callback. See _on_connect.
 sub send_request {
     my ($self, $req_name, $req_data) = @_;
       
-    # build pkt
-    my $pkt = $self->new_packet($req_name, $req_data);    
+    # build pkt    
+    my $pkt = $self->encode_packet($req_name, $req_data);
     
     print STDERR "\n=>\nSending packet:\n";
-    print STDERR hexdump(data => $pkt );
+    print STDERR hexdump(data => $pkt->packed );
     
     # send
-    $self->handler->push_write($pkt);
+    $self->handler->push_write($pkt->packed);
 }
 
 

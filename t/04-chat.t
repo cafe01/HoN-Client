@@ -35,10 +35,11 @@ my $chat = $c->chat;
 isa_ok($chat, 'HoN::Client::Chat', 'thing returned by chat()');
 
 # chat has referencet o client
-isa_ok($chat->client, 'HoN::Client::Client', 'thing returned by $chat->client()');
+isa_ok($chat->client, 'HoN::Client', 'thing returned by $chat->client()');
 
 # connect
-$chat->connect();
+#$chat->connect();
+
 
 
 
