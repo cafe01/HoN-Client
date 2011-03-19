@@ -16,7 +16,7 @@ HoN::Client::Chat::PacketFactory - A packet factory for HoN Chat client.
 
 =head1 VERSION
 
-Version 0.01
+See HoN::Client
 
 =head1 SYNOPSIS
 
@@ -40,6 +40,11 @@ has '_module_finder' => (
     handles => { packets => 'plugins' }
 );
 
+=head2 BUILD
+
+Load Packet classes. Map encoders and decoders.
+
+=cut
 
 sub BUILD {
     my ($self) = @_;
@@ -68,17 +73,47 @@ sub BUILD {
 
 
 
+=head2 encode_packet
+
+=over 4
+
+=item Arguments:  $pkt_name [, $data]
+
+=item Return Value: new packet object.
+
+=back
+
+Searches for a packet encoder of name $pkt_name. Uses the found class or the default packet class to create the new packet.
+
+$data is a hashref used when packing the packet C struct. Required by almost all packet encoders.
+
+=cut
 
 sub encode_packet {
     my ($self, $pkt_name, $data) = @_;
         
     # get encoder
-    my $packet_class = $self->get_packet_encoder($pkt_name);
+    my $packet_class = $self->_get_packet_encoder($pkt_name);
     
     # build n return
     $packet_class->new( encode_data => $data );
 }
 
+=head2 decode_packet
+
+=over 4
+
+=item Arguments:  $pkt_name, $data
+
+=item Return Value: new packet object.
+
+=back
+
+Decodes the binary content in $data into a new Packet object. 
+
+Uses the decoder bound to packet id $pkt_id, or the default packet class otherwise.
+
+=cut
 
 sub decode_packet {
     my ($self, $pkt_id, $data) = @_;
@@ -87,20 +122,23 @@ sub decode_packet {
     # $data   binary binary
     
     # get decoder
-    my $packet_class = $self->get_packet_decoder($pkt_id);
+    my $packet_class = $self->_get_packet_decoder($pkt_id);
     
     # build n return
     $packet_class->new( id => $pkt_id, decode_data => $data );
 }
 
 
-sub get_packet_encoder {
+
+
+
+sub _get_packet_encoder {
     my ($self, $pkt_name) = @_;    
     return $self->_encoders->{$pkt_name} ? $self->_encoders->{$pkt_name} : $self->_default_packet_class;
 }
 
 
-sub get_packet_decoder {
+sub _get_packet_decoder {
     my ($self, $pkt_id) = @_;    
     return $self->_decoders->{$pkt_id} ? $self->_decoders->{$pkt_id} : $self->_default_packet_class;
 }

@@ -1,11 +1,12 @@
 #!perl 
 use strict;
 use warnings;
+use FindBin;
 use HoN::Client;
 use Test::More;
 
 # read hon credentials
-my $cred_file = '_hon_credential';
+my $cred_file = $FindBin::Bin.'/_hon_credential';
 plan( skip_all => "Could not find hon credentials ($cred_file)." ) unless -e $cred_file;
 
 # plan
@@ -18,7 +19,7 @@ eval join '', (<R>);
 $credential = $VAR1;
 
 # testing HoN::Client->connect()
-diag('testing HoN::Client->connect()');
+diag('testing HoN::Client');
 
 # create client
 my $c = new HoN::Client;
@@ -28,7 +29,8 @@ is($c->connect('foo', 'bar'), 0, 'bad username/password');
 
 # right username/password
 my $user = $c->connect($credential->{username}, $credential->{password});
-isa_ok($user, 'HoN::Client::User', ''thing returned by  connect()');
+
+isa_ok($user, 'HoN::Client::User', 'thing returned by  connect()');
 isa_ok($c->user, 'HoN::Client::User', 'thing returned by $client->user()');
 
 

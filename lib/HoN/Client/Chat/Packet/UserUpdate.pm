@@ -6,6 +6,37 @@ extends 'HoN::Client::Chat::Packet::Base';
 
 
 
+=head1 NAME
+
+HoN::Client::Chat::Packet::UserUpdate - UserUpdate packet.
+
+=head1 VERSION
+
+See HoN::Client
+
+=head1 SYNOPSIS
+
+=head1 ATTRIBUTES
+
+All of base class, plus:
+
+   - account_id
+    - state
+        - online
+        - in_lobby
+        - in_game
+    - flags
+        - is_moderator
+        - is_founder
+        - is_prepurchased
+    - clan
+    - symbol
+    - color
+    - icon
+
+
+=cut
+
 class_has 'name'        => ( is => 'ro', isa => 'Str', default => 'UserUpdate' );
 class_has 'events'  => ( is => 'ro', isa => 'ArrayRef', default => sub{[qw/ user_update /]} );
 class_has 'decode_id'   => ( is => 'ro', isa => 'Int', default => 0x0c00 );

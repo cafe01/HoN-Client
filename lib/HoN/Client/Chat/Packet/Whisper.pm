@@ -4,6 +4,24 @@ use Moose;
 use MooseX::ClassAttribute;
 extends 'HoN::Client::Chat::Packet::Base';
 
+=head1 NAME
+
+HoN::Client::Chat::Packet::Whisper - Whisper packet, send and receive.
+
+=head1 VERSION
+
+See HoN::Client.
+
+=head1 SYNOPSIS
+
+=head1 ATTRIBUTES
+
+All of base class, plus:
+
+- user: user sending the message
+- message: message text
+
+=cut
 
 
 class_has 'name'        => ( is => 'ro', isa => 'Str', default => 'Whisper' );

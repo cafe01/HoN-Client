@@ -5,11 +5,24 @@ use MooseX::ClassAttribute;
 extends 'HoN::Client::Chat::Packet::Base';
 
 
+=head1 NAME
+
+HoN::Client::Chat::Packet::JoinChannel - JoinChannel packet.
+
+=head1 VERSION
+
+See HoN::Client
+
+=head1 SYNOPSIS
+
+=head1 ATTRIBUTES
+
+All of base class, none added.
+
+=cut
 
 class_has 'name'        => ( is => 'ro', isa => 'Str', default => 'JoinChannel' );
-
-class_has 'events'  => ( is => 'ro', isa => 'ArrayRef', default => sub{[qw/ join_channel /]} );  
-
+class_has 'events'  => ( is => 'ro', isa => 'ArrayRef', default => sub{[qw/ join_channel /]} );
 class_has 'encode_id'   => ( is => 'ro', isa => 'Int', default => 0x1e00 );
 
 has 'event_name'  => ( is => 'ro', isa => 'Str', default => 'join_channel' );

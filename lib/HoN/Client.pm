@@ -16,7 +16,7 @@ with 'HoN::Client::Role::Logger';
 
 =head1 NAME
 
-HoN::Client - The great new HoN::Client!
+HoN::Client - A client for the Heroes of Newerth master server and chat protocol. 
 
 =head1 VERSION
 

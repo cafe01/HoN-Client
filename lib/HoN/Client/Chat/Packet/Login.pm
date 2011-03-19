@@ -5,9 +5,23 @@ use MooseX::ClassAttribute;
 extends 'HoN::Client::Chat::Packet::Base';
 
 
+=head1 NAME
+
+HoN::Client::Chat::Packet::Login - Login packet, send and receive.
+
+=head1 VERSION
+
+See HoN::Client.
+
+=head1 SYNOPSIS
+
+=head1 ATTRIBUTES
+
+All of base class, none added.
+
+=cut
 
 class_has 'name'        => ( is => 'ro', isa => 'Str', default => 'Login' );
-
 class_has 'events'  => ( is => 'ro', isa => 'ArrayRef', default => sub{[qw/ login_request login_success /]} );
 
 class_has 'encode_id'   => ( is => 'ro', isa => 'Int', default => 0x000c );
