@@ -13,7 +13,7 @@ has '_listeners' => (is => 'rw', isa => 'HashRef', default => sub{{}} );
 sub add_events {
     my ($self, @evt_name) = @_;        
     
-    for( @evt_name) {
+    for( @evt_name) {        
         # register event name   
         $self->_events->{$_} = 1;
         

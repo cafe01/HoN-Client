@@ -1,16 +1,19 @@
 package HoN::Client::Chat::Packet::Login;
 
 use Moose;
-use Data::Hexdumper qw(hexdump);
+use MooseX::ClassAttribute;
 extends 'HoN::Client::Chat::Packet::Base';
 
 
-sub _build_name {  'Login' }
 
-sub _build_event_name {  'login_request' }
+class_has 'name'        => ( is => 'ro', isa => 'Str', default => 'Login' );
 
-sub _build_encode_id {  0x000c }
+class_has 'events'  => ( is => 'ro', isa => 'ArrayRef', default => sub{[qw/ login_request login_success /]} );
 
+class_has 'encode_id'   => ( is => 'ro', isa => 'Int', default => 0x000c );
+class_has 'decode_id'   => ( is => 'ro', isa => 'Int', default => 0x001c );
+
+has 'event_name'  => ( is => 'rw', isa => 'Str', default => 'login_request' );
 
 # add C code
 around '_build_binary_c' => sub {
@@ -24,18 +27,20 @@ around '_build_binary_c' => sub {
     
 struct Login {
     u_16 id;
-    u_32 account_id;
+    account_id account_id;
     cookie cookie;
     char padding[10];
 };
 CCODE
 
     # tag    
-    $c->tag('Login.account_id', ByteOrder => 'LittleEndian');
+    #$c->tag('Login.account_id', ByteOrder => '');
     
     # return
     return $c;
 };
+
+
 
 sub _encode_packet {
     my ($self) = @_;
@@ -53,6 +58,17 @@ sub _encode_packet {
     
     # pack
     return $self->packed( $self->pack($self->name, $data) );
+}
+
+
+
+sub _decode_packet {
+    my ($self) = @_;    
+    # the login success packet has only an ID, no data
+    
+    # set event name to "login_success"
+    $self->event_name('login_success');
+    
 }
 
 

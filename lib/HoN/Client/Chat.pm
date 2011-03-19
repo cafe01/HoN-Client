@@ -26,7 +26,6 @@ Version 0.01
 
 =cut
 
-# addr: 174.36.178.66:11031
 
 has 'client'      => ( is => 'ro', isa => 'HoN::Client', required => 1 );
 has 'server_port' => ( is => 'ro', isa => 'Int',         default  => 11031 );
@@ -35,13 +34,27 @@ has 'packet_factory' => (
     is      => 'ro',
     isa     => 'HoN::Client::Chat::PacketFactory',
     default => sub { HoN::Client::Chat::PacketFactory->new },
-    handles => ['new_packet', 'decode_packet']
+    handles => ['packets', 'decode_packet', 'encode_packet']
 );
 
 has 'handler'      => ( is => 'rw', isa => 'AnyEvent::Handle' );
 
 
 =head1 METHODS
+
+=head2 BUILD
+
+=cut
+
+sub BUILD {
+    my $self = shift;
+    
+    # register packet events
+    my @packet_events = map { @{ $_->events } } $self->packets;
+    $self->add_events( @packet_events );
+}
+
+
 
 =head2 connect
 
@@ -128,6 +141,7 @@ sub _on_connect {
 }
 
 
+
 =head2 send_request
 
 Arguments: ($request_name, $packet_data)
@@ -148,10 +162,26 @@ sub send_request {
     
     # send
     $self->handler->push_write($pkt->packed);
+    
+    # fire event
+    $self->fire_event($pkt->event_name, $self, $pkt);
 }
 
 
 
+=head2 join
+
+Arguments: $channel_name
+
+Joins a channel.
+
+=cut
+
+sub join {
+    my ($self, $channel) = @_;
+    
+    $self->send_request('JoinChannel', { channel => $channel }); 
+}
 
 
 

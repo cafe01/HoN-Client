@@ -1,7 +1,7 @@
 package HoN::Client::Chat::Packet::UnknownPacket;
 
 use Moose;
-use Data::Hexdumper qw(hexdump);
+use MooseX::ClassAttribute;
 extends 'HoN::Client::Chat::Packet::Base';
 
 
@@ -26,11 +26,13 @@ event_name : unknown_packet
 
 
 # register name and event name
-sub _build_name {  'UnknownPacket' }
-sub _build_event_name {  'unknown_packet' }
+class_has 'name'        => ( is => 'ro', isa => 'Str', default => 'UnknownPacket' );
+class_has 'event_name'  => ( is => 'ro', isa => 'Str', default => 'unknown_packet' );
 
+class_has 'events'  => ( is => 'ro', isa => 'ArrayRef', default => sub{[qw/ unknown_packet /]} );  
 
-sub _build_decode_id {  0x99999999 } # not uset in this packet (unknown!)  
+class_has 'decode_id'   => ( is => 'ro', isa => 'Int', default => 0x99999999 ); # not uset in this packet (unknown!)  
+
 
 
 # add C code

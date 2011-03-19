@@ -28,9 +28,17 @@ Version 0.01
 
 has '_default_packet_class' => ( is => 'ro', isa => 'Str', default => 'HoN::Client::Chat::Packet::UnknownPacket' );
 
-
 has '_decoders' => ( is => 'rw', isa => 'HashRef' );
 has '_encoders' => ( is => 'rw', isa => 'HashRef' );
+
+has '_module_finder' => ( 
+    is => 'ro', 
+    isa => 'Module::Pluggable::Object', 
+    default => sub {   
+        Module::Pluggable::Object->new(search_path => ['HoN::Client::Chat::Packet'], except => 'HoN::Client::Chat::Packet::Base');
+    },
+    handles => { packets => 'plugins' }
+);
 
 
 sub BUILD {
@@ -42,13 +50,13 @@ sub BUILD {
     my $encoders = {};
         
     # search namespace
-    my $finder = Module::Pluggable::Object->new(search_path => ['HoN::Client::Chat::Packet'], except => 'HoN::Client::Chat::Packet::Base'); 
-    foreach my $packet_class ($finder->plugins) {
+    foreach my $packet_class ($self->packets) {
         $self->log->debug("Found packet class: $packet_class");
         
         #load class
         Class::MOP::load_class($packet_class);
         
+        # map encoders / decoders
         $decoders->{$packet_class->decode_id} = $packet_class if $packet_class->can('_decode_packet'); # map by packet id
         $encoders->{$packet_class->name}      = $packet_class if $packet_class->can('_encode_packet'); # map by packet name
     }

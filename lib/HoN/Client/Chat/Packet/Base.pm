@@ -24,11 +24,13 @@ Extend this class to implement chat packets.
 =cut
 
 
-class_has 'name'            => ( is => 'ro', isa => 'Str', lazy_build => 1 );
-class_has 'event_name'  => ( is => 'ro', isa => 'Str', lazy_build => 1 ); 
+class_has 'name'            => ( is => 'ro', isa => 'Str', default => '' );
+class_has 'event_name'      => ( is => 'rw', isa => 'Str', default => '' ); 
 
-class_has 'decode_id'       => ( is => 'ro', isa => 'Int', lazy_build => 1 );
-class_has 'encode_id'       => ( is => 'ro', isa => 'Int', lazy_build => 1 );
+class_has 'events'          => ( is => 'ro', isa => 'ArrayRef', default => sub{ [] } ); # all possible events related to this packet 
+
+class_has 'decode_id'       => ( is => 'ro', isa => 'Int', default => '' );
+class_has 'encode_id'       => ( is => 'ro', isa => 'Int', default => '' );
 
 
 
@@ -47,8 +49,9 @@ has 'binary_c'  => (
     isa     => 'Convert::Binary::C',
     lazy_build => 1,
     handles => {
-         'pack'      => 'pack' ,
-         'parse_c' => 'parse',
+         'pack'     => 'pack' ,
+         'unpack'   => 'unpack' ,
+         'parse_c'  => 'parse',
     }
 );
 
@@ -65,12 +68,16 @@ sub _build_binary_c {
 typedef char byte;
 typedef unsigned short u_16;
 typedef unsigned int u_32;
+typedef char String[];
+typedef u_32 account_id;
 typedef char cookie[32];
 
 CCODE
 
     # tags
-    $c->tag('cookie', Format => 'String');   
+    $c->tag('cookie', Format => 'String');
+    $c->tag('String', Format => 'String');
+    $c->tag('account_id', ByteOrder => 'LittleEndian');
 
     return $c;
 }
@@ -101,6 +108,15 @@ sub BUILD {
 
 
 
+
+sub _dump {
+    my ($self, $data) = @_;
+    print STDERR hexdump(data => $data);
+}
+
+
+
+__PACKAGE__->meta()->make_immutable();
 
 1;
 
