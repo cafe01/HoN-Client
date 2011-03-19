@@ -19,7 +19,7 @@ WriteMakefile(
         'AnyEvent'                          => 0,
         'PHP::Serialization'               => 0,
         'Moose'                               => 0,
-        'MooseX::ClassAttribute '     => 0,
+        'MooseX::ClassAttribute '     => 0.24,
         'namespace::autoclean'       => 0,
         'Module::Pluggable::Object'   => 0
 
