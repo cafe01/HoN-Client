@@ -33,7 +33,7 @@ is($pkt->channel_id, 0x00000683, "channel_id");
 
 is_deeply($pkt->user, {
   'account_id' => 3104786,
-  'name' => 'Hawkee',
+  'nickname' => 'Hawkee',
   'color' => 'white',
   'symbol' => 'unitedkingdom',
   'icon' => 'The Hawk',
@@ -55,7 +55,7 @@ is_deeply($pkt->unpacked, {
   'channel_id' => 1667,
   'user' => {
               'account_id' => 3104786,
-              'name' => 'Hawkee',
+              'nickname' => 'Hawkee',
               'color' => 'white',
               'symbol' => 'unitedkingdom',
               'icon' => 'The Hawk',

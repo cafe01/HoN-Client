@@ -143,6 +143,58 @@ sub _dump {
 
 
 
+sub _unpack {
+    my ($self, $data, $unpacked, $pos, @profile) = @_;
+
+    # types
+    my $types = {
+        string => {
+            tpl => 'Z*',
+            sizeof => sub { length(shift) + 1 }
+        },
+        byte => {
+            tpl => 'C',
+            sizeof => sub { 1 }
+        },
+        u_16 => {
+            tpl => 'S',
+            sizeof => sub { 2 }
+        },
+        dword => {
+            tpl => 'I<',
+            sizeof => sub { 4 }
+        }
+        
+    };  
+    
+    # unpack acording to profile
+    #my $data_len = length(unpack 'H*', $$data) / 2;
+    my $data_len = length($$data);
+    
+    $self->_dump($$data);
+    
+    while (@profile && $pos < $data_len) {
+        
+        printf STDERR "Data_len: %d, pos: %d\n", $data_len, $pos;
+        
+        my $field_type    = shift @profile;
+        my $field_name  = shift @profile;
+        
+        use Data::Dumper;
+        print STDERR "$field_name => $field_type\n";
+        
+        # get type handler
+        my $type = $types->{ $field_type };
+        
+        # unpack and increment $pos
+        $unpacked->{$field_name} = unpack($type->{tpl}, substr $$data, $pos);  
+        $pos += $type->{sizeof}->($unpacked->{$field_name});
+    }
+    
+    
+    return $pos;
+}
+
 
 
 

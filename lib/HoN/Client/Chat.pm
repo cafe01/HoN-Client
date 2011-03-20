@@ -98,14 +98,12 @@ sub _on_connect {
     $self->handler->on_read(sub {
         my $h = shift;
 
-        # some data is here, now queue the length-header-read (4 octets)
+        # some data is here, now queue the length-header-read (2 octets)
         $h->unshift_read (chunk => 2, sub {
             
             # header arrived, decode
             my $len = unpack "S>", $_[1];
-                
-            printf STDERR "\n<==\nGot packet: %d bytes: ",$len;
-            
+                            
             # read ID
             shift->unshift_read (chunk => 2, sub {
                 

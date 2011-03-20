@@ -36,7 +36,7 @@ has 'user'  => ( is => 'rw', isa => 'HashRef'  );
 sub _decode_packet {
     my ($self) = @_;    
 
-#    STRING: name 
+#    STRING: nickname 
 #    DWORD: account id 
 #    DWORD: channel id 
 #    BYTE: state 
@@ -57,9 +57,9 @@ sub _decode_packet {
     
     my $pos = 0;
         
-    # STRING: name
-    $user{name} = unpack('Z*', substr $data, $pos);
-    $pos += length($user{name}) + 1; 
+    # STRING: nickname
+    $user{nickname} = unpack('Z*', substr $data, $pos);
+    $pos += length($user{nickname}) + 1; 
 
      # DWORD: account_id
     $user{account_id} = unpack('I<', substr $data, $pos);  

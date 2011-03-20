@@ -58,9 +58,10 @@ has 'is_prepurchased' => ( is => 'rw', isa => 'Bool', default => 0);
 
 
 has 'clan'   => ( is => 'rw', isa => 'Str' );
+has 'clan_id'   => ( is => 'rw', isa => 'Int' );
 has 'symbol' => ( is => 'rw', isa => 'Str' );
 has 'color'  => ( is => 'rw', isa => 'Str' );
-has 'icon'   => ( is => 'rw', isa => 'Str' );
+has 'icon'   => ( is => 'rw', isa => 'Str');
 
 
 # add C code
@@ -89,7 +90,15 @@ around '_build_binary_c' => sub {
 #    STRING: symbol (bandeira do brasil) 
 #    STRING: color 
 #    STRING: icon 
-     
+
+# String: server address
+# String: game name
+# 6 bytes
+# String: Piaba (??????????)
+# String: region (USE)
+# String: mode (normal)
+# String: map (caldavar)
+
     $c->parse(<<'CCODE');
     
     
@@ -117,12 +126,54 @@ sub _decode_packet {
     
     # raw bits
     my $data = $self->decode_data;
+
+    #    DWORD: account id 
+    #    BYTE: state 
+    #    BYTE: flags 
+    #    DWORD: clan id 
+    #    STRING: clan 
+    #    STRING: symbol (bandeira do brasil) 
+    #    STRING: color 
+    #    STRING: icon 
+    
+    # String: server address
+    # String: game name
+    # 6 bytes
+    # String: Piaba (??????????)
+    # String: region (USE)
+    # String: mode (normal)
+    # String: map (caldavar)
+    
+    my $unpacked = {};
+    $self->_unpack(\$data, $unpacked, 0,
+        'dword'     => 'account_id',
+        'byte'        => 'state',
+        'byte'        => 'flags',
+        'dword'     => 'clan_id',
+        'string'      => 'clan',
+        'string'      => 'symbol',
+        'string'      => 'color',
+        'string'      => 'icon',  
+        'string'      => 'server_addr',
+        'string'      => 'game_name',
+        'dword'     => 'unknown1',
+        'u_16'       => 'unknown2',
+        'string'      => 'unknown_string',
+        'string' => 'region',
+        'string' => 'mode',
+        'byte' => 'unknown_byte',
+        'string' => 'map',
+    );
+    
+    use Data::Dumper;
+    print STDERR Dumper($unpacked);
+    
     
     # unpack    
-    my $unpacked = $self->unpack($self->name, $data);
+    #my $unpacked = $self->unpack($self->name, $data);
     
     # populate attributes
-    $self->$_($unpacked->{$_}) for (qw/ account_id state flags clan symbol color icon/);
+    $self->$_($unpacked->{$_}) for qw/ account_id state flags clan symbol color icon/;
     
     # decode state
     my $decoded_state = $self->_decode_user_state($unpacked->{state});
@@ -133,6 +184,8 @@ sub _decode_packet {
     my $decoded_flags = $self->_decode_user_flags( $unpacked->{flags} );
     $self->$_( $decoded_flags->{$_} ) for keys %$decoded_flags;
 }
+
+
 
 
 
