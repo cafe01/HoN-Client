@@ -29,7 +29,6 @@ class_has 'decode_id'   => ( is => 'ro', isa => 'Int', default => 0x0500 );
 
 has 'event_name'  => ( is => 'rw', isa => 'Str'  );
 
-has 'account_id'  => ( is => 'rw', isa => 'Int'  );
 has 'channel_id'  => ( is => 'rw', isa => 'Int'  );
 has 'user'  => ( is => 'rw', isa => 'HashRef'  );
 
@@ -62,14 +61,13 @@ sub _decode_packet {
     $user{name} = unpack('Z*', substr $data, $pos);
     $pos += length($user{name}) + 1; 
 
-     # DWORD: channel_id
-    $unpacked{channel_id} = unpack('I<', substr $data, $pos); 
-    $pos += 4;
-    
      # DWORD: account_id
     $user{account_id} = unpack('I<', substr $data, $pos);  
     $pos += 4;
     
+     # DWORD: channel_id
+    $unpacked{channel_id} = unpack('I<', substr $data, $pos); 
+    $pos += 4;
        
 #    BYTE: state 
     $user{state} = $self->_decode_user_state( unpack('C', substr $data, $pos) );

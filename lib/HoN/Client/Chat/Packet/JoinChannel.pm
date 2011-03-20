@@ -131,7 +131,7 @@ sub _decode_packet {
     my $data = $self->decode_data;
     
     # unpack 
-    my $unpacked = $self->manual_unpack($data);
+    my $unpacked = $self->_manual_unpack($data);
     
     #use Data::Dumper;
     #print STDERR Dumper($unpacked);
@@ -144,8 +144,11 @@ sub _decode_packet {
 
 }
 
-sub manual_unpack {
+
+sub _manual_unpack {
     my ($self, $data) = @_;
+
+# TODO: unpack using substr and $pos 
     
 #    ID: 0x0400
 #    STRING: channel 

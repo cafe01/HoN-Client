@@ -26,13 +26,13 @@ my $factory = HoN::Client::Chat::PacketFactory->new;
 my $data =  '4861776B65650012602F00830600000300756E697465646B696E67646F6D00776869746500546865204861776B00';
 my $pkt = $factory->decode_packet(0x0500, pack('H*', $data));
 
-isa_ok($pkt, 'HoN::Client::Chat::Packet::PlayerJoinedChannel', 'JoinChannelResponse- thing returned by encode_packet()');
+isa_ok($pkt, 'HoN::Client::Chat::Packet::PlayerJoinedChannel', 'thing returned by encode_packet()');
 
-is($pkt->channel_id, 0x002F6012, "channel_id");
+is($pkt->channel_id, 0x00000683, "channel_id");
 
 
 is_deeply($pkt->user, {
-  'account_id' => 1667,
+  'account_id' => 3104786,
   'name' => 'Hawkee',
   'color' => 'white',
   'symbol' => 'unitedkingdom',
@@ -52,9 +52,9 @@ is_deeply($pkt->user, {
 
 is_deeply($pkt->unpacked, {
   'id'         => 0x0500,
-  'channel_id' => 3104786,
+  'channel_id' => 1667,
   'user' => {
-              'account_id' => 1667,
+              'account_id' => 3104786,
               'name' => 'Hawkee',
               'color' => 'white',
               'symbol' => 'unitedkingdom',
