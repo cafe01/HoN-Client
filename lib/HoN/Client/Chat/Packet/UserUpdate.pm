@@ -125,38 +125,13 @@ sub _decode_packet {
     $self->$_($unpacked->{$_}) for (qw/ account_id state flags clan symbol color icon/);
     
     # decode state
-    my $state = $unpacked->{state};
-#    Offline: 0x00 
-#    Online: 0x03 
-#    In Lobby: 0x04 
-#    In Game: 0x05 
-    my %state_mask = (
-        online   => 0x03,
-        in_lobby => 0x04, 
-        in_game  => 0x05,
-    );
-    
-    for (qw/ online in_lobby in_game/) {
-        $self->$_(1) if (($state & $state_mask{$_}) == $state_mask{$_});
-    }
-    
+    my $decoded_state = $self->_decode_user_state($unpacked->{state});
+    $self->$_( $decoded_state->{$_} ) for keys %$decoded_state;
     
     # decode flags
     my $flags = $unpacked->{flags};
-    #    None: 0x00 
-    #    Moderator: 0x01 
-    #    Founder: 0x02 
-    #    Prepurchased:0x40 
-    my %flag_mask = (
-        moderator    => 0x01, 
-        founder      => 0x02,
-        prepurchased => 0x40 
-    );
-    
-    for (keys %flag_mask) {
-        my $attr = "is_$_";
-        $self->$attr(1) if (($flags & $flag_mask{$_}) == $flag_mask{$_});
-    }
+    my $decoded_flags = $self->_decode_user_flags( $unpacked->{flags} );
+    $self->$_( $decoded_flags->{$_} ) for keys %$decoded_flags;
 }
 
 

@@ -68,6 +68,7 @@ sub _build_binary_c {
 typedef char byte;
 typedef unsigned short u_16;
 typedef unsigned int u_32;
+typedef u_32 dword;
 typedef char String[];
 typedef u_32 account_id;
 typedef char cookie[32];
@@ -79,6 +80,7 @@ CCODE
     $c->tag('cookie', Format => 'String');
     $c->tag('String', Format => 'String');
     $c->tag('account_id', ByteOrder => 'LittleEndian');
+    $c->tag('dword', ByteOrder => 'LittleEndian');
     
     my $extracted_strings = 0;
     my $packed_buf = '';
@@ -137,6 +139,59 @@ sub _dump {
     my ($self, $data) = @_;    
     print STDERR hexdump(data => $data || $self->packed || $self->decode_data);
 }
+
+
+
+
+
+
+sub _decode_user_state {
+    my ($self, $state) = @_;
+    
+    my $decoded = {};
+    
+#    Offline: 0x00 
+#    Online: 0x03 
+#    In Lobby: 0x04 
+#    In Game: 0x05 
+    my %state_mask = (
+        online   => 0x03,
+        in_lobby => 0x04, 
+        in_game  => 0x05,
+    );
+    
+    for (keys %state_mask) {
+        $decoded->{$_} = (($state & $state_mask{$_}) == $state_mask{$_}) ? 1 : 0;
+    }
+        
+    return $decoded;
+}
+
+
+
+sub _decode_user_flags {
+    my ($self, $state) = @_;
+    
+    my $decoded = {};
+    
+    #    None: 0x00 
+    #    Moderator: 0x01 
+    #    Founder: 0x02 
+    #    Prepurchased:0x40 
+    my %mask = (
+        is_moderator    => 0x01, 
+        is_founder      => 0x02,
+        is_prepurchased => 0x40 
+    );
+    
+    for (keys %mask) {
+        $decoded->{$_} = (($state & $mask{$_}) == $mask{$_}) ? 1 : 0;
+    }
+        
+    return $decoded;
+}
+
+
 
 
 
