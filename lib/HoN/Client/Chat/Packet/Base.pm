@@ -37,9 +37,10 @@ class_has 'encode_id'       => ( is => 'ro', isa => 'Int', default => '' );
 =head1 CLASS ATTRIBUTES
 
 =cut
-has 'id'        => ( is => 'ro', isa => 'Int' );
+has 'id'        => ( is => 'rw', isa => 'Int' );
 
-has 'packed'    => ( is => 'rw' );
+has 'packed'     => ( is => 'rw' );
+has 'unpacked' => ( is => 'rw', isa => 'HashRef' );
 
 has 'decode_data'    => ( is => 'ro', predicate => 'has_decode_data' );
 has 'encode_data'    => ( is => 'ro', isa => 'HashRef', predicate => 'has_encode_data' );

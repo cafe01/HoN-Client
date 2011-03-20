@@ -17,7 +17,13 @@ See HoN::Client
 
 =head1 ATTRIBUTES
 
-All of base class, none added.
+All of base class, plus:
+ - channel
+ - topic
+ - op_count
+ - ops
+ - user_count
+ - users
 
 =cut
 
