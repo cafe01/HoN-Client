@@ -20,7 +20,6 @@ my $pkt_join = $factory->encode_packet('JoinChannel', { channel => 'Cambada' });
 
 isa_ok($pkt_join, 'HoN::Client::Chat::Packet::JoinChannel', 'JoinChannel - thing returned by encode_packet()');
 is($pkt_join->packed, pack( 'H*', '1e0043616d6261646100'), 'JoinChannel - right packed data');
-
 is($pkt_join->event_name, 'join_channel_request', 'event name');
 
 
@@ -31,5 +30,55 @@ my $pkt = $factory->decode_packet(0x0400, pack('H*', $data));
 
 isa_ok($pkt, 'HoN::Client::Chat::Packet::JoinChannel', 'JoinChannelResponse- thing returned by encode_packet()');
 
-is($pkt->channel, 'brasil', 'channel');
-is($pkt->channel_id, 'brasil', 'channel');
+is($pkt->event_name, 'join_channel_response', 'event name');
+is($pkt->channel, 'HoN 4', 'channel');
+is($pkt->channel_id, 116, 'channel_id');
+is($pkt->topic, 'Welcome to Heroes of Newerth!', 'topic');
+
+is($pkt->op_count, 3, 'op_count');
+ok($pkt->op_count == @{$pkt->ops}, 'op_count and ops array match');
+
+is($pkt->user_count, 49, 'user_count');
+ok($pkt->user_count == @{$pkt->users}, 'user_count and users array match');
+
+## op struct
+is_deeply($pkt->ops->[-1], {
+    'type' => 4,
+    'account_id' => 3188574
+}, 'user data structure');
+
+
+## user struct
+is_deeply($pkt->users->[-1], {
+     'icon' => 'Double Rainbow',
+     'color' => 'white',
+     'symbol' => '',
+     'flags' => {
+                  'is_prepurchased' => 0,
+                  'is_moderator' => 0,
+                  'is_founder' => 0
+                },
+     'nickname' => 'ykt',
+     'state' => {
+                  'in_game' => 0,
+                  'in_lobby' => 0,
+                  'online' => 1
+                },
+     'account_id' => 288900
+}, 'user data structure');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

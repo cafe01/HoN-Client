@@ -200,8 +200,6 @@ sub manual_unpack {
     # DWORD: user count
     $unpacked{user_count} = unpack('I<', $data); 
     $data = substr $data, 4;  
-
-    $self->_dump($data);
     
 #        String user;
 #        dword account_id;
@@ -222,12 +220,8 @@ sub manual_unpack {
         $user{state} = $self->_decode_user_state( unpack('C', $data) ); 
         $data = substr $data, 1;
         
-        
         $user{flags} = $self->_decode_user_flags( unpack('C', $data) ); 
         $data = substr $data, 1;
-
-#        @user{qw/symbol color icon/} = unpack('Z*Z*Z*', $data);        
-#        $data = substr $data, (length $user{symbol} + length $user{color} + length $user{icon}) + 3;
 
         $user{symbol} = unpack('Z*', $data);
         $data = substr $data, length( $user{symbol} ) + 1; 
@@ -243,7 +237,8 @@ sub manual_unpack {
     
     
     # data left
-    $self->_dump($data);
+    printf STDERR "Data left after decoding: %d bytes\n", length $data if $data;
+    $self->_dump($data) if $data;
   
     # return
     return \%unpacked;  
