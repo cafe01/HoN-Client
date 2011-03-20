@@ -134,8 +134,8 @@ sub BUILD {
 
 
 sub _dump {
-    my ($self, $data) = @_;
-    print STDERR hexdump(data => $data || $self->packed);
+    my ($self, $data) = @_;    
+    print STDERR hexdump(data => $data || $self->packed || $self->decode_data);
 }
 
 
