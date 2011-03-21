@@ -175,13 +175,13 @@ sub _unpack {
     
     while (@profile && $pos < $data_len) {
         
-        printf STDERR "Data_len: %d, pos: %d\n", $data_len, $pos;
+        #printf STDERR "Data_len: %d, pos: %d\n", $data_len, $pos;
         
         my $field_type    = shift @profile;
         my $field_name  = shift @profile;
         
-        use Data::Dumper;
-        print STDERR "$field_name => $field_type\n";
+#        use Data::Dumper;
+#        print STDERR "$field_name => $field_type\n";
         
         # get type handler
         my $type = $types->{ $field_type };

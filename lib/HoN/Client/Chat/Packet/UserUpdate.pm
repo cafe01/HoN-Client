@@ -64,61 +64,6 @@ has 'color'  => ( is => 'rw', isa => 'Str' );
 has 'icon'   => ( is => 'rw', isa => 'Str');
 
 
-# add C code
-around '_build_binary_c' => sub {
-    my $orig = shift;
-    my $self = shift;
-    
-    my $c = $self->$orig(@_);
-    
-     # parse struct
-#    ID: 0x0C 
-#    DWORD: account id 
-#    BYTE: state 
-#    BYTE: flags 
-#    DWORD: clan id 
-#    STRING: clan 
-#    STRING: server (if in lobby/in game) 
-#    STRING: game name (if in game)#
-#        DWORD: match id 
-
-#    DWORD: account id 
-#    BYTE: state 
-#    BYTE: flags 
-#    DWORD: clan id 
-#    STRING: clan 
-#    STRING: symbol (bandeira do brasil) 
-#    STRING: color 
-#    STRING: icon 
-
-# String: server address
-# String: game name
-# 6 bytes
-# String: Piaba (??????????)
-# String: region (USE)
-# String: mode (normal)
-# String: map (caldavar)
-
-    $c->parse(<<'CCODE');
-    
-    
-struct UserUpdate {
-    account_id account_id;
-    byte state;
-    byte flags;
-    account_id clan_id;
-    ConcatString clan;
-    ConcatString symbol;
-    ConcatString color;
-    ConcatString icon;
-};
-
-CCODE
-
-    # return
-    return $c;
-};
-
 
 
 sub _decode_packet {
@@ -165,12 +110,8 @@ sub _decode_packet {
         'string' => 'map',
     );
     
-    use Data::Dumper;
-    print STDERR Dumper($unpacked);
-    
-    
-    # unpack    
-    #my $unpacked = $self->unpack($self->name, $data);
+#    use Data::Dumper;
+#    print STDERR Dumper($unpacked);
     
     # populate attributes
     $self->$_($unpacked->{$_}) for qw/ account_id state flags clan symbol color icon/;

@@ -5,8 +5,10 @@ use Data::Dumper;
 use Moose;
 use namespace::autoclean;
 use Digest::MD5 qw(md5_hex);
-use LWP::UserAgent;
 use PHP::Serialization qw(unserialize);
+use AnyEvent;
+use AnyEvent::HTTP;
+
 
 use HoN::Client::User;
 use HoN::Client::Chat;
@@ -47,6 +49,9 @@ has 'chat'    => ( is => 'rw', isa => 'HoN::Client::Chat', lazy_build => 1 );
 
 has 'is_connected'    => ( is => 'rw', isa => 'Bool', default => 0 );
 
+has '_condvar' => ( is => 'rw', isa => 'AnyEvent::CondVar', default => sub {AnyEvent->condvar});
+
+
 has '_auth_data' => ( is => 'rw', isa => 'HashRef' );
 has '_cookie' => ( is => 'rw', isa => 'Str' );
 has '_chat_server' => ( is => 'rw', isa => 'Str' );
@@ -77,7 +82,7 @@ Authenticates to master server, returns a HoN::Client::User object representing 
 =cut
 
 sub connect {
-    my ($self, $username, $password) = @_;
+    my ($self, $username, $password, $cb) = @_;
     
     die "Pass a username and password please!" unless ($username && $password);
         
@@ -87,33 +92,48 @@ sub connect {
     
     # do request
     $self->log->info('Authenticating to master server.');
-    my $ua = LWP::UserAgent->new( agent => '' );
-    my $res = $ua->get($url);
     
-    # request error
-    unless ($res->is_success) {
-        die "Request error: ". $res->status_line;
-    }
+    http_request GET => $url,
+        headers => { "user-agent" => "" },
+        timeout => 30,
+        sub { 
+                my ($body, $hdr) = @_;
+                
+                $self->log->info('Got http response.');
+            
+                # error?
+                unless ($hdr->{Status} =~ /^2/) {
+                    $self->log->error("error, $hdr->{Status} $hdr->{Reason}");            
+                    return$cb->(0, "error, $hdr->{Status} $hdr->{Reason}");
+                }
+          
+                # parse response
+                my $auth_data = unserialize($body);
+                $self->_auth_data( $auth_data );
+         
+                 # failed authentication
+                unless ($auth_data->{0}) {
+                    $self->log->error($auth_data->{auth});              
+                    return $cb->(0, $auth_data->{auth});           
+                }
+           
+                # connected!
+                $self->is_connected(1);
+                
+                # setup attributes
+                $self->_cookie($auth_data->{cookie});
+                $self->_chat_server($auth_data->{chat_url});
+                
+                # create user
+                $self->user( HoN::Client::User->new( config => $auth_data ) );
+                
+                # send good news          
+                $cb->(1, $auth_data->{auth});
+                
+            }; # end of http_request
     
-    # parse response
-    my $auth_data = unserialize($res->content);
-    $self->_auth_data( $auth_data );
-    
-    # failed authentication
-    unless ($auth_data->{0}) {
-        $self->log->error($auth_data->{auth});
-        return 0;
-    }
-    
-    # connected!
-    $self->is_connected(1);
-    
-    # setup attributes
-    $self->_cookie($auth_data->{cookie});
-    $self->_chat_server($auth_data->{chat_url});
-    
-    # all good, create new User
-    return $self->user(HoN::Client::User->new( config => $auth_data ));
+    # return condvar
+    return $self->_condvar;
 }
 
 

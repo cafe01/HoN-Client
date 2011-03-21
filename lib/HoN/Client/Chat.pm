@@ -49,6 +49,9 @@ has 'handler'      => ( is => 'rw', isa => 'AnyEvent::Handle' );
 sub BUILD {
     my $self = shift;
     
+    # register my events
+    $self->add_events(qw/ packet_received /);
+    
     # register packet events
     my @packet_events = map { @{ $_->events } } $self->packets;
     $self->add_events( @packet_events );
@@ -61,35 +64,37 @@ sub BUILD {
 =cut
 
 sub connect {
-    my ($self) = @_;
+    my ($self, $cb) = @_;
     
-    # 
+    # condvar
     my $cv = AnyEvent->condvar;
+    
+    # register callback
+    $cv->cb($cb) if $cb;  
 
     # start connection
     my $h; $h = new AnyEvent::Handle 
         connect  => [ $self->client->_chat_server => $self->server_port ],
         on_connect => sub {
             $self->_on_connect(@_);
+            $cv->send(1);
         },
         on_error => sub {
             $self->log->debug('Called: on_error');
             $h->destroy;    # explicitly destroy handle
-            $cv->send;
+            $cv->send(0);
         },
         on_eof => sub {
             $self->log->debug('Called: on_eof');
             $h->destroy;    # explicitly destroy handle
-            $cv->send;
+            $cv->send(0);
         };
         
     # save handler
     $self->handler($h);
         
-    # hold until connection is completed (or failed)
-    $cv->recv;
-    
 }
+
 
 sub _on_connect {
     my ($self) = @_;
@@ -124,8 +129,12 @@ sub _on_connect {
                     # decode packet
                     my $pkt = $self->decode_packet($id, $buf);
                     
-                    # fire event
-                    $self->fire_event($pkt->event_name, $self, $pkt);                     
+                    # fire named event
+                    $self->fire_event($pkt->event_name, $self, $pkt);
+                    
+                    # fire generic event
+                    $self->fire_event('packet_received', $self, $pkt);
+                                         
                 });
             });
         });

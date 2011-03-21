@@ -63,6 +63,7 @@ sub add_events {
         $self->_listeners->{$_} ||= [];
     }
     
+    # TODO: all methods from this role should return $self
     return scalar @evt_name; 
 }
 

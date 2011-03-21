@@ -21,7 +21,8 @@ WriteMakefile(
         'Moose'                               => 0,
         'MooseX::ClassAttribute '     => 0.24,
         'namespace::autoclean'       => 0,
-        'Module::Pluggable::Object'   => 0
+        'Module::Pluggable::Object'   => 0,
+        'AnyEvent::HTTP'                 => 0
 
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
