@@ -89,7 +89,11 @@ sub _decode_packet {
     # String: mode (normal)
     # String: map (caldavar)
     
-    my $unpacked = {};
+    my $unpacked = {
+        id => $self->decode_id,
+        event_name => 'user_update',
+    };
+    
     $self->_unpack(\$data, $unpacked, 0,
         'dword'     => 'account_id',
         'byte'        => 'state',
@@ -117,13 +121,16 @@ sub _decode_packet {
     $self->$_($unpacked->{$_}) for qw/ account_id state flags clan symbol color icon/;
     
     # decode state
-    my $decoded_state = $self->_decode_user_state($unpacked->{state});
-    $self->$_( $decoded_state->{$_} ) for keys %$decoded_state;
+    $unpacked->{state} = $self->_decode_user_state($unpacked->{state});
+    $self->$_( $unpacked->{state}->{$_} ) for keys %{$unpacked->{state}};
     
     # decode flags
     my $flags = $unpacked->{flags};
-    my $decoded_flags = $self->_decode_user_flags( $unpacked->{flags} );
-    $self->$_( $decoded_flags->{$_} ) for keys %$decoded_flags;
+    $unpacked->{flags} = $self->_decode_user_flags( $unpacked->{flags} );
+    $self->$_( $unpacked->{flags}->{$_} ) for keys %{$unpacked->{flags}};
+    
+    # save unpacked
+    $self->unpacked($unpacked);
 }
 
 

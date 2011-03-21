@@ -93,12 +93,13 @@ sub _decode_packet {
     
     # unpack   (stuff the id back into data, so share the same C struct as encoder)
     my $unpacked = $self->unpack('ChannelMessageReceive',  pack('S>', $self->decode_id).$data);
+    $self->unpacked($unpacked);
+    
+    $unpacked->{id} = $self->decode_id;
+    $unpacked->{event_name} = 'channel_message_received';
     
     # populate attributes
-    $self->$_($unpacked->{$_}) for (qw/ account_id channel_id message /);       
-        
-    # evt name
-    $self->event_name('channel_message_received');
+    $self->$_($unpacked->{$_}) for keys %$unpacked;
 }
 
 

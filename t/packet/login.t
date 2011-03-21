@@ -27,3 +27,19 @@ is($pkt_login->event_name, 'login_request', 'login request - right event name');
 $pkt_login = $factory->decode_packet(0x001c, '');
 isa_ok($pkt_login, 'HoN::Client::Chat::Packet::Login', 'login response (success) - thing returned by decode_packet()');
 is($pkt_login->event_name, 'login_success', 'login response - right event name');
+
+is_deeply($pkt_login->unpacked, {
+    id => 0x001c,
+    event_name => 'login_success'
+}, 'unpacked');
+
+
+
+
+
+
+
+
+
+
+

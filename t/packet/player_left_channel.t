@@ -28,7 +28,12 @@ is($pkt->event_name, 'player_left_channel', "event_name");
 is($pkt->account_id, 0x000145F3, "account_id");
 is($pkt->channel_id, 0x00000683, "channel_id");
 
-
+is_deeply($pkt->unpacked, {
+  'id'         => 0x0600,
+  'event_name' => 'player_left_channel',
+  'account_id' => 0x000145F3,
+  'channel_id' => 0x00000683,
+}, "unpacked");
 
 
 

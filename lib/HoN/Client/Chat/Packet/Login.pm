@@ -78,10 +78,14 @@ sub _encode_packet {
 
 sub _decode_packet {
     my ($self) = @_;    
+    
     # the login success packet has only an ID, no data
+    my $unpacked = $self->unpacked({});
+    $unpacked->{id} = $self->decode_id;
+    $unpacked->{event_name} = 'login_success';
     
     # set event name to "login_success"
-    $self->event_name('login_success');
+    $self->event_name($unpacked->{event_name});
     
 }
 

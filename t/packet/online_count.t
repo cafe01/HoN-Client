@@ -24,3 +24,9 @@ isa_ok($pkt, 'HoN::Client::Chat::Packet::OnlineCount', 'thing returned by decode
 is($pkt->count, 0xDDCCBBAA, 'right count');
 is($pkt->event_name, 'online_count', 'event name');
 
+is_deeply($pkt->unpacked, {
+  'id'         => 0x6800,
+  'event_name' => 'online_count',
+  'count' => 0xDDCCBBAA,
+}, "unpacked");
+

@@ -52,6 +52,7 @@ is_deeply($pkt->user, {
 
 is_deeply($pkt->unpacked, {
   'id'         => 0x0500,
+  'event_name' => 'player_joined_channel',
   'channel_id' => 1667,
   'user' => {
               'account_id' => 3104786,

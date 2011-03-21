@@ -45,6 +45,7 @@ sub _decode_packet {
     my $pos = 0;
     my %unpacked = (
         id      => $self->decode_id,
+        event_name => 'player_left_channel',
     ); 
             
      # DWORD: account_id
@@ -63,9 +64,6 @@ sub _decode_packet {
     
     # save unpacked struct
     $self->unpacked(\%unpacked);
-        
-    # evt name
-    $self->event_name('player_left_channel');
 
 }
 

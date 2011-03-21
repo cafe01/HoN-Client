@@ -99,12 +99,12 @@ sub connect {
         sub { 
                 my ($body, $hdr) = @_;
                 
-                $self->log->info('Got http response.');
+                $self->log->debug('Got http response.');
             
                 # error?
                 unless ($hdr->{Status} =~ /^2/) {
                     $self->log->error("error, $hdr->{Status} $hdr->{Reason}");            
-                    return$cb->(0, "error, $hdr->{Status} $hdr->{Reason}");
+                    return $cb->($self, 0, "error, $hdr->{Status} $hdr->{Reason}");
                 }
           
                 # parse response
@@ -114,7 +114,7 @@ sub connect {
                  # failed authentication
                 unless ($auth_data->{0}) {
                     $self->log->error($auth_data->{auth});              
-                    return $cb->(0, $auth_data->{auth});           
+                    return $cb->($self, 0, $auth_data->{auth});           
                 }
            
                 # connected!
@@ -128,7 +128,7 @@ sub connect {
                 $self->user( HoN::Client::User->new( config => $auth_data ) );
                 
                 # send good news          
-                $cb->(1, $auth_data->{auth});
+                $cb->($self, 1, $auth_data->{auth});
                 
             }; # end of http_request
     

@@ -52,6 +52,7 @@ sub _decode_packet {
     my %user;
     my %unpacked = (
         id      => $self->decode_id,
+        event_name => 'player_joined_channel',
         user  => \%user
     ); 
     
@@ -98,9 +99,6 @@ sub _decode_packet {
     
     # save unpacked struct
     $self->unpacked(\%unpacked);
-        
-    # evt name
-    $self->event_name('player_joined_channel');
 
 }
 

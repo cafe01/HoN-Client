@@ -64,12 +64,13 @@ sub _decode_packet {
     
     # unpack 
     my $unpacked = $self->unpack($self->name,  $data);
+    $self->unpacked($unpacked);
+    
+    $unpacked->{id} = $self->decode_id;
+    $unpacked->{event_name} = 'online_count';
     
     # populate attributes
-    $self->$_($unpacked->{$_}) for (qw/ count /);       
-        
-    # evt name
-    $self->event_name('online_count');
+    $self->$_($unpacked->{$_}) for keys %$unpacked;
 }
 
 

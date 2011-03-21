@@ -31,7 +31,7 @@ sub _build_log {
     # add
     $log->add(
         screen => {
-            log_to   => "STDOUT",
+            log_to   => "STDERR",
             maxlevel => "debug",
             minlevel => "emergency",
             message_layout => "%T [%L] %m",

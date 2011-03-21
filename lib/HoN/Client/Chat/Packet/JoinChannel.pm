@@ -132,16 +132,16 @@ sub _decode_packet {
     
     # unpack 
     my $unpacked = $self->_manual_unpack($data);
+    $self->unpacked($unpacked);
+    
+    $unpacked->{id} = $self->decode_id;
+    $unpacked->{event_name} = 'join_channel_response';
     
     #use Data::Dumper;
     #print STDERR Dumper($unpacked);
     
     # populate attributes
     $self->$_($unpacked->{$_}) for keys %$unpacked;
-        
-    # evt name
-    $self->event_name('join_channel_response');
-
 }
 
 

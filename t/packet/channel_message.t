@@ -28,3 +28,19 @@ is($pkt->channel_id, 0x0146, 'right channel_id');
 is($pkt->message, 'lolz', 'right message');
 is($pkt->event_name, 'channel_message_received', 'right event name');
 
+is_deeply($pkt->unpacked, {
+    id => 0x0300,
+    event_name => 'channel_message_received',
+    account_id => 0x31543E,
+    channel_id => 0x0146,
+    message => 'lolz',
+}, 'unpacked');
+
+
+
+
+
+
+
+
+
