@@ -155,6 +155,9 @@ sub _on_login_success {
         
     # set connected
     $self->is_connected(1);
+    
+    # connect to saved chatrooms
+    $self->join($_) foreach values %{ $self->client->_auth_data->{chatrooms} };
 }
 
 =head2 send_request
