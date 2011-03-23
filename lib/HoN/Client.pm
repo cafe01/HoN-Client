@@ -46,6 +46,7 @@ Pure OO module.
 has 'user'    => ( is => 'rw', isa => 'HoN::Client::User' );
 has 'chat'    => ( is => 'rw', isa => 'HoN::Client::Chat', lazy_build => 1 );
 
+has 'verbose'    => ( is => 'rw', isa => 'Int', default => 0 );
 
 has 'is_connected'    => ( is => 'rw', isa => 'Bool', default => 0 );
 

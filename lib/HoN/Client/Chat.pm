@@ -28,7 +28,6 @@ Version 0.01
 
 =cut
 
-
 has 'client'      => ( is => 'ro', isa => 'HoN::Client', required => 1 );
 has 'server_port' => ( is => 'ro', isa => 'Int', default  => 11031 );
 
@@ -89,7 +88,7 @@ sub connect {
         },
         on_eof => sub {
             my ($hdl, $fatal, $msg) = @_;
-            $self->log->debug("[Chat] Called: on_eof:(fatal: $fatal) $msg");
+            $self->log->debug("[Chat] Called: on_eof:(fatal: $fatal) $msg") if $self->client->verbose;
             $self->fire_event('disconnect', $self, @_);
             $h->destroy;    # explicitly destroy handle
         };
@@ -129,9 +128,11 @@ sub _on_connect {
                     my $pkt = $self->decode_packet($id, $buf);
                     
                     # debug                
-                    print STDERR "\n";    
-                    $self->log->debug(sprintf("Packet ID: 0x%04x (%d bytes - len / %d bytes - buffer):\n", $id, $len, length $buf));
-                    $pkt->_dump;
+                    if (my $v = $self->client->verbose > 0) {
+                        print STDERR "\n";    
+                        $self->log->debug(sprintf("Packet ID: 0x%04x (%d bytes - len / %d bytes - buffer):\n", $id, $len, length $buf));
+                        $pkt->_dump if $v >= 2;
+                    }
                     
                     # fire named event
                     $self->fire_event($pkt->event_name, $self, $pkt);
