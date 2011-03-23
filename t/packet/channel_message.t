@@ -15,12 +15,17 @@ BEGIN {
 # instace
 my $factory = HoN::Client::Chat::PacketFactory->new;
 
+my $pkt = $factory->encode_packet('ChannelMessage', { message => 'ABC', channel_id => 1});
+isa_ok($pkt, 'HoN::Client::Chat::Packet::ChannelMessage', 'thing returned by encode_packet()');
+is(unpack('H*', $pkt->packed), '03004142430001000000', 'packed');
+
+
 
 # ChannelMessage - received
 #Data (13 bytes - len / 13 bytes - buffer):
 #  0x0000 : 3E 54 31 00 46 01 00 00 6C 6F 6C 7A 00          : >T1.F...lolz.
 
-my $pkt = $factory->decode_packet(0x0300, pack('H*', '3E543100460100006C6F6C7A00'));
+$pkt = $factory->decode_packet(0x0300, pack('H*', '3E543100460100006C6F6C7A00'));
 isa_ok($pkt, 'HoN::Client::Chat::Packet::ChannelMessage', 'thing returned by decode_packet()');
 
 is($pkt->account_id, 0x31543E, 'right account_id');

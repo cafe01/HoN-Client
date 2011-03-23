@@ -52,17 +52,14 @@ has 'is_connected'    => ( is => 'rw', isa => 'Bool', default => 0 );
 has '_condvar' => ( is => 'rw', isa => 'AnyEvent::CondVar', default => sub {AnyEvent->condvar});
 
 
-has '_auth_data' => ( is => 'rw', isa => 'HashRef' );
+has '_auth_data' => ( is => 'rw', isa => 'HashRef', default => sub{{}} );
 has '_cookie' => ( is => 'rw', isa => 'Str' );
 has '_chat_server' => ( is => 'rw', isa => 'Str' );
 
 
 sub _build_chat {
     my $self = shift;
-    
-    # die unless connected
-    die "You can't chat() before connect()" unless $self->is_connected;
-    
+        
     return HoN::Client::Chat->new(client => $self);
 }
 
@@ -138,7 +135,11 @@ sub connect {
 
 
 
-
+sub is_authenticated {
+    my ($self) = @_;
+    
+    return $self->_auth_data->{0};
+}
 
 
 

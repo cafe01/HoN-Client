@@ -10,6 +10,8 @@ use AnyEvent::Handle;
 with 'HoN::Client::Role::Logger';
 with 'HoN::Client::Role::Observable';
 
+# TODO: Renomear Chat para Protocol ??
+
 =head1 NAME
 
 HoN::Client::Chat - HoN Chat client.
@@ -28,13 +30,15 @@ Version 0.01
 
 
 has 'client'      => ( is => 'ro', isa => 'HoN::Client', required => 1 );
-has 'server_port' => ( is => 'ro', isa => 'Int',         default  => 11031 );
+has 'server_port' => ( is => 'ro', isa => 'Int', default  => 11031 );
+
+has 'is_connected' => ( is => 'rw', isa => 'Bool', default  => 0 );
 
 has 'packet_factory' => (
     is      => 'ro',
     isa     => 'HoN::Client::Chat::PacketFactory',
     default => sub { HoN::Client::Chat::PacketFactory->new },
-    handles => ['packets', 'decode_packet', 'encode_packet']
+    handles => ['packets', 'decode_packet', 'encode_packet', '_has_encoder']
 );
 
 has 'handler'      => ( is => 'rw', isa => 'AnyEvent::Handle' );
@@ -50,11 +54,14 @@ sub BUILD {
     my $self = shift;
     
     # register my events
-    $self->add_events(qw/ packet_received /);
+    $self->add_events(qw/ packet_received disconnect connect /);
     
     # register packet events
     my @packet_events = map { @{ $_->events } } $self->packets;
     $self->add_events( @packet_events );
+    
+    # listen for 'login_success'
+    $self->add_listener('login_success', sub { $self->_on_login_success(@_) });
 }
 
 
@@ -64,35 +71,31 @@ sub BUILD {
 =cut
 
 sub connect {
-    my ($self, $cb) = @_;
-    
-    # condvar
-    my $cv = AnyEvent->condvar;
-    
-    # register callback
-    $cv->cb($cb) if $cb;  
+    my ($self) = @_;
+         
 
     # start connection
     my $h; $h = new AnyEvent::Handle 
         connect  => [ $self->client->_chat_server => $self->server_port ],
-        on_connect => sub {
-            $self->_on_connect(@_);
-            $cv->send(1);
+        on_connect => sub {            
+            $self->_on_connect(@_);         
+            $self->fire_event('connect', $self, @_);   
         },
         on_error => sub {
-            $self->log->debug('Called: on_error');
+            my ($hdl, $fatal, $msg) = @_;
+            $self->log->debug("[Chat] Called: on_error:(fatal: $fatal) $msg");
+            $self->fire_event('disconnect', $self, @_);
             $h->destroy;    # explicitly destroy handle
-            $cv->send(0);
         },
         on_eof => sub {
-            $self->log->debug('Called: on_eof');
+            my ($hdl, $fatal, $msg) = @_;
+            $self->log->debug("[Chat] Called: on_eof:(fatal: $fatal) $msg");
+            $self->fire_event('disconnect', $self, @_);
             $h->destroy;    # explicitly destroy handle
-            $cv->send(0);
         };
         
     # save handler
     $self->handler($h);
-        
 }
 
 
@@ -117,17 +120,18 @@ sub _on_connect {
                 
                 # id arrived, decode
                 my $id = unpack "S>", $_[1];
-                printf STDERR "Packet ID: 0x%04x\n",$id;
                 
                 # now read the payload
                 shift->unshift_read (chunk => $len, sub {
                     my $buf = $_[1];                
-    
-                    printf STDERR "Data (%d bytes - len / %d bytes - buffer):\n", $len, length $buf;
-                    print STDERR hexdump(data => $buf ) if $buf;
-                    
+                       
                     # decode packet
                     my $pkt = $self->decode_packet($id, $buf);
+                    
+                    # debug                
+                    print STDERR "\n";    
+                    $self->log->debug(sprintf("Packet ID: 0x%04x (%d bytes - len / %d bytes - buffer):\n", $id, $len, length $buf));
+                    $pkt->_dump;
                     
                     # fire named event
                     $self->fire_event($pkt->event_name, $self, $pkt);
@@ -141,13 +145,16 @@ sub _on_connect {
    });
    
     # log in
-    $self->send_request('Login', {
-        account_id => $self->client->user->account_id,
-        cookie     => $self->client->_cookie,
-    });
+    $self->login;
 }
 
 
+sub _on_login_success {
+    my ($self, $me_again, $pkt) = @_;
+        
+    # set connected
+    $self->is_connected(1);
+}
 
 =head2 send_request
 
@@ -191,6 +198,24 @@ sub join {
 }
 
 
+
+=head2 join
+
+Arguments: none.
+
+Send a Login request.
+
+=cut
+
+sub login {
+    my ($self) = @_;
+    
+    # log in
+    $self->send_request('Login', {
+        account_id => $self->client->user->account_id,
+        cookie     => $self->client->_cookie,
+    });
+}
 
 
 

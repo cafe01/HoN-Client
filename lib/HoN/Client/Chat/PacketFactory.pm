@@ -129,7 +129,10 @@ sub decode_packet {
 }
 
 
-
+sub _has_encoder {
+    my ($self, $pkt_name) = @_;    
+    return exists $self->_encoders->{$pkt_name} ? 1 : 0;
+}
 
 
 sub _get_packet_encoder {

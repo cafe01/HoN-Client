@@ -25,11 +25,11 @@ All of base class, plus:
 =cut
 
 
-class_has 'name'        => ( is => 'ro', isa => 'Str', default => 'Whisper' );
+class_has 'name'        => ( is => 'ro', isa => 'Str', default => 'ChannelMessage' );
 class_has 'events'       => ( is => 'ro', isa => 'ArrayRef', default => sub{[qw/ channel_message_sent channel_message_received /]} );
 
 class_has 'decode_id'  => ( is => 'ro', isa => 'Int', default => 0x0300 );
-#class_has 'encode_id'  => ( is => 'ro', isa => 'Int', default => 0x0800 );
+class_has 'encode_id'  => ( is => 'ro', isa => 'Int', default => 0x0300 );
 
 has 'account_id'  => ( is => 'rw', isa => 'Int' );
 has 'channel_id'  => ( is => 'rw', isa => 'Int' );
@@ -49,6 +49,13 @@ around '_build_binary_c' => sub {
      
     $c->parse(<<'CCODE');
         
+struct ChannelMessage {
+    u_16 id;
+    String message;
+    account_id channel_id;
+};
+
+        
 struct ChannelMessageReceive {
     u_16 id;
     account_id account_id;
@@ -64,23 +71,27 @@ CCODE
 
 
 
-#sub _encode_packet {
-#    my ($self) = @_;    
-#    
-#    # data
-#    my $data     = $self->encode_data;
-#    $data->{id} = $self->encode_id;
-#    
-#    # pack
-#    $self->packed( $self->pack($self->name, $data) );    
-#    #$self->_dump;
-#    
-#    # populate attributes
-#    $self->$_($data->{$_}) for (qw/ user message /);   
-#    
-#    # evt name
-#    $self->event_name('whisper_sent');
-#}
+sub _encode_packet {
+    my ($self) = @_;    
+    
+    # data
+    my $data    = $self->encode_data;
+    $data->{id} = $self->encode_id;
+    
+    my $packed = pack('S>', $data->{id});
+    $packed .= pack('Z*', $data->{message});
+    $packed .= pack('I<', $data->{channel_id});
+    
+    # pack
+    $self->packed($packed);    
+    #$self->_dump;
+    
+    # populate attributes
+    $self->$_($data->{$_}) for (qw/ id channel_id message /);   
+    
+    # evt name
+    $self->event_name('whisper_sent');
+}
 
 
 

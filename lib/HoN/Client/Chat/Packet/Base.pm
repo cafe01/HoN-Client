@@ -138,13 +138,16 @@ sub BUILD {
 
 sub _dump {
     my ($self, $data) = @_;    
-    print STDERR hexdump(data => $data || $self->packed || $self->decode_data);
+    my $some_data = $data || $self->packed || $self->decode_data;
+    print STDERR hexdump(data => $some_data) if $some_data;
 }
 
 
 
 sub _unpack {
     my ($self, $data, $unpacked, $pos, @profile) = @_;
+    
+    # TODO: could turn @profile into a Hash::MultiValue object.
 
     # types
     my $types = {
@@ -171,7 +174,7 @@ sub _unpack {
     #my $data_len = length(unpack 'H*', $$data) / 2;
     my $data_len = length($$data);
     
-    $self->_dump($$data);
+    #$self->_dump($$data);
     
     while (@profile && $pos < $data_len) {
         

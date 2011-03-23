@@ -25,8 +25,6 @@ diag('testing HoN::Client::Chat');
 # create client
 my $c = new HoN::Client;
 
-# chat before connecting (dies)
-dies_ok { $c->chat } " chat before connecting (dies)";
 
 # now connect
 $c->connect($credential->{username}, $credential->{password});
