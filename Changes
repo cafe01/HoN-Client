@@ -1,3 +1,23 @@
 Revision history for HoN-Client
 
 
+
+
+
+
+
+
+
+
+2011-03-23 
+
+- ChannelMessage now can also encode (send) packets.
+
+- Chat.pm: 
+ - now fires 'connect' and 'disconnect' events;
+ - does nto use condvar anymore
+ - new method: login()
+
+- PacketFacotry:
+ - new method: _has_encoder() 
+
