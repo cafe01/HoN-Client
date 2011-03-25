@@ -175,8 +175,9 @@ sub send_request {
     # build pkt    
     my $pkt = $self->encode_packet($req_name, $req_data);
     
-    print STDERR "\n=>\nSending packet:\n";
-    print STDERR hexdump(data => $pkt->packed );
+    # log
+    $self->log->info("Sending packet:", $req_name);
+    $self->log->debug(hexdump(data => $pkt->packed ));
     
     # send
     $self->handler->push_write($pkt->packed);
@@ -203,9 +204,7 @@ sub join {
 
 
 
-=head2 join
-
-Arguments: none.
+=head2 login
 
 Send a Login request.
 
