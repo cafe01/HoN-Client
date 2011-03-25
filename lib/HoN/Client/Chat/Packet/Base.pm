@@ -72,7 +72,7 @@ typedef unsigned int u_32;
 typedef u_32 dword;
 typedef char String[];
 typedef u_32 account_id;
-typedef char cookie[32];
+typedef char cookie[33];
 typedef char ConcatString[];
 
 CCODE
