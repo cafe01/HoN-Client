@@ -18,6 +18,7 @@ See HoN::Client
 has 'log'   => ( is => 'rw', builder => '_build_log' );
 has '_log_name' => ( is => 'ro', isa => 'Str', default => 'hon_client_log');
 
+has 'verbose'    => ( is => 'rw', isa => 'Int', default => 0 );
 
 sub _build_log {
     my $self = shift;
@@ -28,16 +29,17 @@ sub _build_log {
     # create new 
     my $log = Log::Handler->create_logger($self->_log_name);
     
-    # add
+    # log to STDERR
     $log->add(
         screen => {
             log_to   => "STDERR",
             maxlevel => "debug",
             minlevel => "emergency",
             message_layout => "%T [%L] %m",
-        },
-    );
+        }
+    ) if $self->verbose;
     
+    # log to file
         
     # return
     return $log;    
