@@ -23,22 +23,36 @@ $credential = $VAR1;
 diag('testing HoN::Client::Chat');
 
 # create client
-my $c = new HoN::Client;
+my $c = new HoN::Client(verbose => 0);
 
 
 # now connect
-$c->connect($credential->{username}, $credential->{password});
+$c->connect( $credential->{username}, $credential->{password}, sub { $c->unloop } );
+$c->loop;
 
 # create chat
 my $chat = $c->chat;
-isa_ok($chat, 'HoN::Client::Chat', 'thing returned by chat()');
+isa_ok($chat, 'HoN::Client::Chat', 'return value of chat()');
 
 # chat has referencet o client
-isa_ok($chat->client, 'HoN::Client', 'thing returned by $chat->client()');
+isa_ok($chat->client, 'HoN::Client', 'return value of $chat->client()');
 
-# connect
-#$chat->connect();
 
+# live test
+$c->connect( $credential->{username}, $credential->{password}, sub {
+    
+    $chat->add_listener('login_success', sub{
+        ok(1, 'fired login_success');
+        $c->unloop;
+    });
+
+    # connect
+    $chat->connect();    
+    
+});
+
+
+$c->loop;
 
 
 

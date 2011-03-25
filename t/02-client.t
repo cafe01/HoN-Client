@@ -22,20 +22,39 @@ $credential = $VAR1;
 diag('testing HoN::Client');
 
 # create client
-my $c = new HoN::Client;
+my $c = new HoN::Client();
 
-# bad username/password
-is($c->connect('foo', 'bar'), 0, 'bad username/password');
+# connect
+my $cv1 = $c->connect('foo', 'bar', sub {
+   my ($client, $success, $msg) = @_;
+   
+    # bad username/password
+   is($success, 0, 'bad username/password'); 
+   $c->unloop;
+});
+
+isa_ok($cv1, 'AnyEvent::CondVar', 'return value of connect()');
+
+# enter loop
+$c->loop;
+
 
 # right username/password
-my $user = $c->connect($credential->{username}, $credential->{password});
+$c->connect($credential->{username}, $credential->{password}, sub {
+   my ($client, $success, $msg) = @_;
+   
+    # right username/password
+   is($success, 1, 'right username/password');   
+   $c->unloop;
+});
 
-isa_ok($user, 'HoN::Client::User', 'thing returned by  connect()');
+$c->loop;
+
+# user()
 isa_ok($c->user, 'HoN::Client::User', 'thing returned by $client->user()');
 
-
 # cookie
-like($c->_cookie, qr/^\w{32}$/, 'has md5-like cookie');
+like($c->_cookie, qr/^[0-9a-f]{32}$/, 'has md5-like cookie');
 
 # chat server
 like($c->_chat_server, qr/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, 'has chat server IP (chat_url)');

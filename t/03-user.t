@@ -23,7 +23,13 @@ diag('testing HoN::Client::User');
 
 # create client and connect
 my $c = new HoN::Client;
-my $user = $c->connect($credential->{username}, $credential->{password});
+$c->connect($credential->{username}, $credential->{password}, sub{ $c->unloop; });
+
+# wait
+$c->loop;
+
+# continue
+my $user = $c->user;
 
 # nickname / id
 is($user->nickname, $credential->{nickname}, 'right nickname');
