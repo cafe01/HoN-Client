@@ -27,6 +27,8 @@ class_has 'events'  => ( is => 'ro', isa => 'ArrayRef', default => sub{[qw/ logi
 class_has 'encode_id'   => ( is => 'ro', isa => 'Int', default => 0x000c );
 class_has 'decode_id'   => ( is => 'ro', isa => 'Int', default => 0x001c );
 
+class_has 'protocol_version'   => ( is => 'ro', isa => 'Int', default => 0x000c );
+
 has 'event_name'  => ( is => 'rw', isa => 'Str', default => 'login_request' );
 
 # add C code
@@ -43,7 +45,8 @@ struct Login {
     u_16 id;
     account_id account_id;
     cookie cookie;
-    char padding[10];
+    u_16 protocol_version;
+    char padding[7];
 };
 CCODE
 
@@ -68,8 +71,9 @@ sub _encode_packet {
 
     # add packet fields
     $data->{id} = $self->encode_id;
-    $data->{padding} = [0x00, 0x00, 0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-    
+    $data->{protocol_version} ||= $self->protocol_version;
+    $data->{padding} = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+        
     # pack
     return $self->packed( $self->pack($self->name, $data) );
 }
