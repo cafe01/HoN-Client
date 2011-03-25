@@ -1,0 +1,18 @@
+
+
+# Nickname autocomplete
+
+Via    : HTTP
+Host   : http://masterserver.hon.s2games.com
+Path   : /client_requester.php
+Params : f=autocompleteNicks&nickname=chu
+
+
+
+# User stats:
+
+Via    : HTTP
+Host   : http://masterserver.hon.s2games.com
+Path   : /statsRequest.php  || /statsRequestRanked.php  || /statsRequestCasual.php 
+Params : aId=1462544&nickname=Cafe
+
