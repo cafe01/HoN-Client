@@ -46,7 +46,6 @@ Pure OO module.
 has 'user'    => ( is => 'rw', isa => 'HoN::Client::User' );
 has 'chat'    => ( is => 'rw', isa => 'HoN::Client::Chat', lazy_build => 1 );
 
-has 'verbose'    => ( is => 'rw', isa => 'Int', default => 0 );
 
 has 'is_connected'    => ( is => 'rw', isa => 'Bool', default => 0 );
 
@@ -83,6 +82,10 @@ sub connect {
     my ($self, $username, $password, $cb) = @_;
     
     die "Pass a username and password please!" unless ($username && $password);
+    
+    # send current condvar, and create another
+    $self->_condvar->send;
+    $self->_condvar(AnyEvent->condvar);
         
     # build url
     my $url = 'http://masterserver.hon.s2games.com/client_requester.php?f=auth&login='.$username.'&password='. md5_hex($password);
@@ -108,12 +111,17 @@ sub connect {
                 # parse response
                 my $auth_data = unserialize($body);
                 $self->_auth_data( $auth_data );
+                
+                $self->log->debug(Dumper($auth_data));
          
                  # failed authentication
                 unless ($auth_data->{0}) {
                     $self->log->error($auth_data->{auth});              
                     return $cb->($self, 0, $auth_data->{auth});           
                 }
+                
+                
+                $self->log->info("I'm connectd!");
            
                 # connected!
                 $self->is_connected(1);
@@ -135,11 +143,39 @@ sub connect {
 }
 
 
+=head2 is_authenticated
+
+Returns true if client is authenticated. 
+
+=cut
 
 sub is_authenticated {
     my ($self) = @_;
     
     return $self->_auth_data->{0};
+}
+
+
+=head2 loop
+
+Shortcur for $self->_condvar->recv. For when you need to manualy enter event loop. See L<AnyEvent::CondVar::recv>.
+
+=cut
+
+sub loop {
+    my ($self) = @_;    
+    $self->_condvar->recv;
+}
+
+=head2 unloop
+
+Shortcur for $self->_condvar->send. Notify whatever is waiting for $self->_condvar. See L<loop> and L<AnyEvent::CondVar::send>.
+
+=cut
+
+sub unloop {
+    my ($self) = @_;    
+    $self->_condvar->send;
 }
 
 
